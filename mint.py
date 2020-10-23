@@ -21,17 +21,30 @@ def mintPull(mintBook, destBook):
 		if not date in destDates:
 			destSheet.insert_rows(1, amount=1) # Pre-pend blank row
 			copyRow(mintSheet, destSheet, 2)
+		i += 1
+
+	#print_rows(destSheet)
 
 # Helper Functions
 def initWorkbook(src):
-	workbookObj = load_workbook(src)
+	workbookObj = openpyxl.load_workbook(src)
 	return workbookObj
 
 # Copy the row range and from one sheet to another -- PARALLEL ONLY
-def copyRow(sheetCopy, sheetPaste, row):
-	for copyCell in sheetCopy.iter_rows(min_row=row, max_row=row):
-		for pasteCell in sheetPaste.iter_rows(min_row=row, max_row=row):
-			pasteCell.value = copyCell.value
+def copyRow(sheetCopy, sheetPaste, rowPlace):
+	copyList = []
+	# Copy to a list to copy to
+	for row in sheetCopy.iter_rows(rowPlace):
+		print()
+		for cell in row:
+			copyList.append(cell.value)
+			print(cell.value)
+
+	# Paste into the new sheet
+	for row in sheetPaste.iter_rows(rowPlace):
+		for cell in range(len(row)):
+			print("cell:", cell, row[cell].value, copyList[cell])
+			row[cell].value = copyList[cell]
 
 
 # Create a set based on the Excel Column Name passed in
@@ -53,7 +66,7 @@ def print_rows(sheet, isPrint=True):
 			i += 1
 
 # Driver Code
-if __name__ == "main":
+if __name__ == '__main__':
 	# Universal Test Flags
 	printFlag = True
 	saveFlag = True
@@ -69,8 +82,8 @@ if __name__ == "main":
 
 	mintPull(mintBook, destBook)
 
-	print_rows(destBook)
-
-	if not saveFlag:
+	#print_rows(destBook.active)
+	if saveFlag:
 		destBook.save('test/output.xlsx')
 		pass
+	print("Done")
