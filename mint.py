@@ -4,6 +4,7 @@
 import openpyxl
 import os
 
+
 # Workhorse Functions
 
 # Purpose: Take new data from the mint workbook, and transfer it to the destination workbook
@@ -13,46 +14,53 @@ def mintPull(mintBook, destBook):
 	# Get basic solution working
 	mintSheet = mintBook.active
 	destSheet = destBook.active
-	destDates = setFromColumn(destSheet, 'A')
 
-	i = 2
-	while i <= mintSheet.max_row:
-		date = mintSheet.cell(row=i, column=1).value
-		if not date in destDates:
-			destSheet.insert_rows(1, amount=1) # Pre-pend blank row
-			copyRow(mintSheet, destSheet, 2)
-		i += 1
+	# Copy the title row (row 1) to the top of the doc
+	for titleRow in mintSheet.iter_rows(max_row=1):
+		for cellIndex in range(mintSheet.max_column):
+			destSheet.cell(row=1,column= cellIndex + 1) = titleRow[cellIndex].value
 
-	#print_rows(destSheet)
+	# Copy the rest of the rows if the date being parsed is equal to or greater
+	for cellRow in mintSheet.iter_rows(min_row=2):
+		print(cellRow[0].value)
+		for cellIndex in range(mintSheet.max_column):
+			if isDateGreater(cellRow[0].value, destSheet.cell(row=,column=).value):
+			#	destSheet.insert_rows(1, amount=1) # Pre-pend blank row
+			#	destSheet.cell(row=2, column= cellIndex + 2).value = cellRow[cellIndex].value
+			#	print( destSheet.cell(row=2, column= cellIndex + 2).value )
+				pass
+
+# Parse through the dates and append numbers if duplicates present
+def labelDates(book):
+
+
 
 # Helper Functions
 def initWorkbook(src):
 	workbookObj = openpyxl.load_workbook(src)
 	return workbookObj
 
-# Copy the row range and from one sheet to another -- PARALLEL ONLY
-def copyRow(sheetCopy, sheetPaste, rowPlace):
-	copyList = []
-	# Copy to a list to copy to
-	for row in sheetCopy.iter_rows(rowPlace):
-		print()
-		for cell in row:
-			copyList.append(cell.value)
-			print(cell.value)
+def isDateGreater(date, date2):
+	if dateParse(date) >= dateParse(date2) or dateParse(date2) == None:
+		return True
+	else:
+		return False
 
-	# Paste into the new sheet
-	for row in sheetPaste.iter_rows(rowPlace):
-		for cell in range(len(row)):
-			print("cell:", cell, row[cell].value, copyList[cell])
-			row[cell].value = copyList[cell]
+def dateParse(date):
+	string = ""
+	for letter in str(date):
+		if letter.isdigit():
+			string += letter
+	return int(string)
 
 
 # Create a set based on the Excel Column Name passed in
-def setFromColumn(sheet, column):
-	colSet = set({})
+def listFromColumn(sheet, column):
+	colList = []
 	for columnCell in sheet[column]:
-		colSet.add(columnCell.value)
-	return colSet
+		if not columnCell.value in colList:
+			colList.append(str(columnCell.value))
+	return colList
 
 # Print the rows for the worksheet
 def print_rows(sheet, isPrint=True):
@@ -62,7 +70,7 @@ def print_rows(sheet, isPrint=True):
 	i = 0
 	if isPrint == True:
 		for row in sheet.iter_rows(values_only=True):
-			print(f'Line {i}:', row)
+			print(f'Line {i}:', row[0])
 			i += 1
 
 # Driver Code
@@ -80,6 +88,10 @@ if __name__ == '__main__':
 	mintBook = initWorkbook(mintsrc)
 	destBook = initWorkbook(destsrc)
 
+	# Parse the dates, append numbers to better distinguish between duplicate dates
+
+
+	# Pull in Mint data into the new workbook
 	mintPull(mintBook, destBook)
 
 	#print_rows(destBook.active)
